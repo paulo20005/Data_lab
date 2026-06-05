@@ -1,0 +1,448 @@
+{
+  "datasets": [
+    {
+      "name": "dabcab06",
+      "displayName": "Top Ten Countries by Marathon Athlete Count",
+      "queryLines": [
+        "SELECT athlete_country, COUNT(*) as antal\n",
+        "FROM marathos_catalog.marathon_gold.dim_athlete\n",
+        "WHERE athlete_country NOT LIKE 'XXX'\n",
+        "GROUP BY athlete_country\n",
+        "ORDER BY antal DESC\n",
+        "LIMIT 10"
+      ],
+      "catalog": "marathos_catalog",
+      "schema": "marathon_gold"
+    },
+    {
+      "name": "5af9c59f",
+      "displayName": "Athlete Gender Distribution Analysis",
+      "queryLines": [
+        "WITH gender_counts AS (\n",
+        "  SELECT\n",
+        "    CASE\n",
+        "      WHEN gender = 'M' THEN 'Man'\n",
+        "      WHEN gender = 'F' THEN 'Kvinna'\n",
+        "      ELSE 'Annat'\n",
+        "    END as gender_clean,\n",
+        "    COUNT(*) as antal\n",
+        "  FROM\n",
+        "    marathos_catalog.marathon_gold.dim_athlete\n",
+        "  GROUP BY\n",
+        "    gender_clean\n",
+        "),\n",
+        "total_count AS (\n",
+        "  SELECT\n",
+        "    SUM(antal) as total\n",
+        "  FROM\n",
+        "    gender_counts\n",
+        ")\n",
+        "SELECT\n",
+        "  g.gender_clean,\n",
+        "  g.antal,\n",
+        "  g.antal * 1.0 / t.total as percentage\n",
+        "FROM\n",
+        "  gender_counts g CROSS JOIN total_count t"
+      ],
+      "catalog": "marathos_catalog",
+      "schema": "marathon_gold"
+    },
+    {
+      "name": "49b98980",
+      "displayName": "Marathon Participants Counted By Event Year Summary",
+      "queryLines": [
+        "SELECT\n",
+        "  event_year,\n",
+        "  COUNT(*) as antal_deltagare\n",
+        "FROM\n",
+        "  silver_cleaned\n",
+        "GROUP BY\n",
+        "  event_year\n",
+        "ORDER BY\n",
+        "  event_year"
+      ],
+      "catalog": "marathos_catalog",
+      "schema": "marathon_silver"
+    }
+  ],
+  "pages": [
+    {
+      "name": "5026e6b6",
+      "displayName": "Untitled page",
+      "layout": [
+        {
+          "widget": {
+            "name": "d6",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "dabcab06",
+                  "fields": [
+                    {
+                      "name": "athlete_country",
+                      "expression": "`athlete_country`"
+                    },
+                    {
+                      "name": "sum(antal)",
+                      "expression": "SUM(`antal`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "frame": {
+                "showTitle": true,
+                "showDescription": false,
+                "title": "Topp 10 länder med flest idrottare"
+              },
+              "mark": {
+                "colors": [
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 3
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 2
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 3
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 4
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 5
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 6
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 7
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 8
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 9
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 10
+                  }
+                ]
+              },
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "athlete_country",
+                  "displayName": "Länder",
+                  "scale": {
+                    "type": "categorical"
+                  }
+                },
+                "y": {
+                  "fieldName": "sum(antal)",
+                  "displayName": "Antal  deltagare",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 2,
+            "width": 8,
+            "height": 5
+          }
+        },
+        {
+          "widget": {
+            "name": "085b7128",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "5af9c59f",
+                  "fields": [
+                    {
+                      "name": "antal",
+                      "expression": "`antal`"
+                    },
+                    {
+                      "name": "gender_clean",
+                      "expression": "`gender_clean`"
+                    },
+                    {
+                      "name": "percentage",
+                      "expression": "`percentage`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "frame": {
+                "title": "Könsfördelning",
+                "showTitle": true
+              },
+              "widgetType": "pie",
+              "encodings": {
+                "angle": {
+                  "fieldName": "antal",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                },
+                "color": {
+                  "fieldName": "gender_clean",
+                  "displayName": "Kön",
+                  "scale": {
+                    "type": "categorical",
+                    "mappings": [
+                      {
+                        "value": "Annat",
+                        "color": {
+                          "themeColorType": "visualizationColors",
+                          "position": 4
+                        }
+                      }
+                    ]
+                  }
+                },
+                "label": {
+                  "show": true,
+                  "text": {
+                    "fieldName": "percentage",
+                    "format": {
+                      "type": "number-percent",
+                      "decimalPlaces": {
+                        "type": "max",
+                        "places": 1
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 8,
+            "y": 2,
+            "width": 4,
+            "height": 5
+          }
+        },
+        {
+          "widget": {
+            "name": "e238e58e",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "49b98980",
+                  "fields": [
+                    {
+                      "name": "event_year",
+                      "expression": "`event_year`"
+                    },
+                    {
+                      "name": "antal_deltagare",
+                      "expression": "`antal_deltagare`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "frame": {
+                "title": "Utveckling av maratondeltagare 2000-2022",
+                "showTitle": true
+              },
+              "mark": {
+                "marker": {
+                  "shape": "circle"
+                },
+                "colors": [
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 3
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 2
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 3
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 4
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 5
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 6
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 7
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 8
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 9
+                  },
+                  {
+                    "themeColorType": "visualizationColors",
+                    "position": 10
+                  }
+                ],
+                "size": -0.1
+              },
+              "widgetType": "line",
+              "encodings": {
+                "x": {
+                  "fieldName": "event_year",
+                  "axis": {
+                    "title": "År"
+                  },
+                  "displayName": "År",
+                  "scale": {
+                    "type": "quantitative",
+                    "domain": {
+                      "min": 2000,
+                      "max": 2022
+                    }
+                  }
+                },
+                "y": {
+                  "fieldName": "antal_deltagare",
+                  "format": {
+                    "type": "number-plain",
+                    "abbreviation": "compact"
+                  },
+                  "axis": {
+                    "title": "Antal deltagare"
+                  },
+                  "displayName": "Antal deltagare",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                },
+                "label": {
+                  "show": false
+                }
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 7,
+            "width": 12,
+            "height": 5
+          }
+        },
+        {
+          "widget": {
+            "name": "eb6a9141",
+            "multilineTextboxSpec": {
+              "lines": [
+                "<span style=\"font-size:40px;line-height:1.5\">Översikt över deltagare och prestation</span>                                                                                 "
+              ],
+              "verticalAlign": "VERTICAL_ALIGN_TOP"
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 9,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "d5499495",
+            "multilineTextboxSpec": {
+              "lines": [
+                "Chat with me -> [![](https://dbc-6a36e5ae-9207.cloud.databricks.com/genie/rooms/01f160e9f42819899349e7baacce2f64?o=7474648903901049)](https://dbc-6a36e5ae-9207.cloud.databricks.com/genie/rooms/01f160e9f42819899349e7baacce2f64?o=7474648903901049)"
+              ],
+              "verticalAlign": "VERTICAL_ALIGN_CENTER"
+            }
+          },
+          "position": {
+            "x": 9,
+            "y": 0,
+            "width": 2,
+            "height": 2
+          }
+        }
+      ],
+      "pageType": "PAGE_TYPE_CANVAS",
+      "layoutVersion": "GRID_V1"
+    }
+  ],
+  "uiSettings": {
+    "theme": {
+      "canvasBackgroundColor": {
+        "light": "#FFFFFF",
+        "dark": "#7E10B1"
+      },
+      "widgetBackgroundColor": {
+        "light": "#2A2442",
+        "dark": "#1B1833"
+      },
+      "widgetBorderColor": {
+        "light": "#5E5A80",
+        "dark": "#3F3B60"
+      },
+      "fontColor": {
+        "light": "#FDFDFD",
+        "dark": "#F5F5F5"
+      },
+      "selectionColor": {
+        "light": "#FF6EC7",
+        "dark": "#FF6EC7"
+      },
+      "visualizationColors": [
+        "#FF6EC7",
+        "#00FFF7",
+        "#BF00FF",
+        "#FF5F1F",
+        "#FFFF4D",
+        "#D9007F",
+        "#007FFF"
+      ],
+      "widgetHeaderAlignment": "LEFT",
+      "widgetPadding": 16,
+      "widgetMargin": 24,
+      "widgetCornerRadius": 12,
+      "widgetShadow": 0
+    },
+    "applyModeEnabled": false
+  }
+}

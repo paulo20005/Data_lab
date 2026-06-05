@@ -2,7 +2,6 @@ from pyspark import pipelines as dp
 from pyspark.sql.functions import col
 
 # Här gör jag en tabell över alla olika lopp som finns
-
 @dp.table(
     name="marathos_catalog.marathon_gold.dim_event",
     comment="Dimension table for events - Gold layer",
@@ -45,7 +44,8 @@ def dim_athlete():
 def fct_results():
     # Läser från silver och kopplar ihop event_id med athlete_id och deras tid
     df = spark.read.table("marathos_catalog.marathon_silver.silver_cleaned")
-    return df.select("event_id", "athlete_id", "athlete_performance")
+    return df.select("event_id", "athlete_id", "athlete_performance") \
+        .dropDuplicates(["athlete_id", "event_id"])
 
 # En vy som bara visar 50km lopp
 @dp.table(
@@ -56,7 +56,8 @@ def vw_50km_races():
     # Filtrerar bara 50km lopp
     df = spark.read.table("marathos_catalog.marathon_silver.silver_cleaned")
     return df.filter(col("event_distance") == "50km") \
-        .select("event_name", "athlete_id", "athlete_performance")
+        .select("event_name", "athlete_id", "event_id", "athlete_performance") \
+        .dropDuplicates(["athlete_id", "event_id"])
 
 # En vy som bara visar 100km lopp
 @dp.table(
